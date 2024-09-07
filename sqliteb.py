@@ -1,7 +1,9 @@
 import sqlite3
+import pandas as pd
 from tkinter import *
 from tkinter import filedialog, messagebox
 from tkinter import ttk
+import pyperclip
 
 class SQLiteBrowser:
     def __init__(self, root):
@@ -24,6 +26,7 @@ class SQLiteBrowser:
         file_menu = Menu(self.menu, tearoff=0)
         self.menu.add_cascade(label="File", menu=file_menu)
         file_menu.add_command(label="Open Database", command=self.open_database)
+        file_menu.add_command(label="Export to Excel", command=self.export_to_excel)
 
         # Left panel: Listbox for tables
         self.table_listbox = Listbox(self.left_frame, width=40)
@@ -45,12 +48,19 @@ class SQLiteBrowser:
         run_button = Button(self.right_frame, text="Run Query", command=self.run_query)
         run_button.pack(pady=5)
 
-        self.results_tree = ttk.Treeview(self.right_frame, style="Custom.Treeview")
+        self.results_tree = ttk.Treeview(self.right_frame, style="Custom.Treeview", columns=[])
         self.results_tree.pack(pady=20, fill=BOTH, expand=True)
 
         # Style configuration for Treeview
         style = ttk.Style()
         style.configure("Custom.Treeview", font=("Arial", 10))
+
+        # Bind right-click menu
+        self.results_tree.bind("<Button-3>", self.show_popup_menu)
+
+        # Popup menu
+        self.popup_menu = Menu(self.root, tearoff=0)
+        self.popup_menu.add_command(label="Copy", command=self.copy_selection)
 
         self.db_connection = None
 
@@ -116,6 +126,49 @@ class SQLiteBrowser:
         else:
             messagebox.showerror("Error", "No database loaded or query is empty")
             print("No database loaded or query is empty")  # Debug: No database or query is empty
+
+    def show_popup_menu(self, event):
+        self.popup_menu.post(event.x_root, event.y_root)
+
+    def copy_selection(self):
+        selected_items = self.results_tree.selection()
+        if not selected_items:
+            messagebox.showinfo("Info", "No rows selected")
+            return
+
+        rows = []
+        for item in selected_items:
+            row_values = self.results_tree.item(item, "values")
+            rows.append("\t".join(map(str, row_values)))
+
+        text = "\n".join(rows)
+        pyperclip.copy(text)  # Copy the text to the clipboard
+        messagebox.showinfo("Info", "Copied to clipboard")
+
+    def export_to_excel(self):
+        if self.results_tree["columns"]:
+            # Prepare data for export
+            columns = self.results_tree["columns"]
+            rows = [self.results_tree.item(item, "values") for item in self.results_tree.get_children()]
+
+            # Create a DataFrame and export to Excel
+            df = pd.DataFrame(rows, columns=columns)
+            
+            file_path = filedialog.asksaveasfilename(
+                defaultextension=".xlsx",
+                filetypes=[("Excel Files", "*.xlsx"), ("All Files", "*.*")],
+                title="Save Excel File"
+            )
+            
+            if file_path:
+                try:
+                    df.to_excel(file_path, index=False)
+                    messagebox.showinfo("Success", f"Data exported to {file_path}")
+                except Exception as e:
+                    messagebox.showerror("Error", f"Failed to export data: {e}")
+                    print(f"Failed to export data: {e}")  # Debug: Print export error
+        else:
+            messagebox.showinfo("Info", "No data available to export")
 
 if __name__ == "__main__":
     root = Tk()
