@@ -1,7 +1,7 @@
 
 from django.views.generic import ListView, DetailView
 from django.http import Http404
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 
 from .models import Product
 # Create your views here.
@@ -52,6 +52,18 @@ class ProductDetailView(DetailView):
         request = self.request
         pk = self.kwargs.get('pk')
         instance = Product.objects.get_by_id(pk)
+        if instance is None:
+            raise Http404("Product dosen't exist")
+        return instance
+    
+class ProductDetailSlugView(DetailView):
+    queryset = Product.objects.all()
+    template_name = "products/detail.html"
+
+    def get_object(self, *args, **kwargs):
+        request = self.request
+        slug = self.kwargs.get('slug')
+        instance = get_object_or_404(Product, slug=slug)
         if instance is None:
             raise Http404("Product dosen't exist")
         return instance

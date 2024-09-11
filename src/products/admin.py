@@ -5,7 +5,9 @@ from django.utils.html import format_html
 
 # Register your models here.
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'price', 'featured', 'active', 'image')
+    list_display = ['id', 'title', 'price', 'featured', 'active', 'image', 'slug']
+    class Meta:
+        model = Product
 
     def image(self, obj):
         print(obj)
