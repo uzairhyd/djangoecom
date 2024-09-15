@@ -30,13 +30,15 @@ from django.urls import path, include
 
 from .views import home_page, about_page, contact_page, login_page, register_page
 
+
+
 urlpatterns = [
     path('',home_page),
     path('about/',about_page),
     path('contact/',contact_page),
     path('login/', login_page),
     path('register/', register_page),
-    path('products/', include('products.urls')),
+    path('products/', include(('products.urls', 'products'), namespace='products')),
     # path('products/', ProductListView.as_view()),
     # path('featured/', ProductFeaturedListView.as_view()),
     # path('featured/<int:pk>/', ProductFeaturedDetailView.as_view()),
@@ -44,6 +46,7 @@ urlpatterns = [
     # path('products/<slug:slug>/', ProductDetailSlugView.as_view()),
     path('admin/', admin.site.urls),
 ]
+
 
 if settings.DEBUG:
     urlpatterns = urlpatterns + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
