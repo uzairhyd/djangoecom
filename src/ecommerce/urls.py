@@ -31,7 +31,7 @@ from django.views.generic import TemplateView
 #     )
 
 
-from accounts.views import login_page, register_page, logout_page
+from accounts.views import login_page, register_page, logout_page, guest_register_view
 from .views import home_page, about_page, contact_page
 
 
@@ -40,6 +40,7 @@ urlpatterns = [
     path('about/',about_page, name='about'),
     path('contact/',contact_page, name='contact'),
     path('login/', login_page, name='login'),
+    path('register/guest/', guest_register_view, name='guest_register'),
     path('logout/', logout_page, name='logout'),
     path('cart/', include(('carts.urls', 'cart'), namespace='cart')),
     path('register/', register_page, name='register'),
